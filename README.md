@@ -39,11 +39,13 @@ A Google Keep clone built with Elixir, Phoenix LiveView, and TailwindCSS.
 git clone git@github.com:asheehan/checkers.git
 cd checkers
 
-# Install dependencies
-mix deps.get
+# Run setup script (installs deps, creates DB, builds assets)
+./setup.sh
 
-# Create and migrate database
-mix ecto.setup
+# Or manually:
+# mix deps.get
+# mix ecto.setup
+# mix assets.build
 
 # Start the server
 mix phx.server
