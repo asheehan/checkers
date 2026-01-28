@@ -68,10 +68,17 @@ defmodule Checkers.Notes do
   defp maybe_search(query, search) do
     search_term = "%#{String.downcase(search)}%"
 
+    # Use a subquery to find note IDs that match checklist items
+    checklist_matches =
+      from ci in Checkers.Notes.ChecklistItem,
+        where: like(fragment("lower(?)", ci.content), ^search_term),
+        select: ci.note_id
+
     from n in query,
       where:
         like(fragment("lower(?)", n.title), ^search_term) or
-          like(fragment("lower(?)", n.content), ^search_term)
+          like(fragment("lower(?)", n.content), ^search_term) or
+          n.id in subquery(checklist_matches)
   end
 
   @doc """

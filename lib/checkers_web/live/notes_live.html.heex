@@ -82,6 +82,9 @@
       <nav class="p-2 overflow-hidden">
         <.link
           navigate={~p"/"}
+          id="drop-notes"
+          phx-hook="DropZone"
+          data-drop-action="drop_to_notes"
           class={"flex items-center px-6 py-3 rounded-r-full transition-colors " <>
             if(@current_view == :notes, do: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200", else: "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300")}
         >
@@ -93,6 +96,9 @@
 
         <.link
           navigate={~p"/archive"}
+          id="drop-archive"
+          phx-hook="DropZone"
+          data-drop-action="drop_to_archive"
           class={"flex items-center px-6 py-3 rounded-r-full transition-colors " <>
             if(@current_view == :archive, do: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200", else: "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300")}
         >
@@ -104,6 +110,9 @@
 
         <.link
           navigate={~p"/trash"}
+          id="drop-trash"
+          phx-hook="DropZone"
+          data-drop-action="drop_to_trash"
           class={"flex items-center px-6 py-3 rounded-r-full transition-colors " <>
             if(@current_view == :trash, do: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200", else: "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300")}
         >
@@ -130,9 +139,11 @@
               class={"flex items-center px-6 py-3 rounded-r-full transition-colors " <>
                 if(@selected_label && @selected_label.id == label.id, do: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200", else: "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300")}
             >
-              <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
+              <span class="w-5 h-5 mr-4 rounded-full flex items-center justify-center" style={"background-color: #{label_color_hex(label.color)}"}>
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </span>
               <%= label.name %>
             </.link>
           <% end %>
@@ -156,14 +167,17 @@
               />
               <textarea
                 name="note[content]"
-                placeholder="Take a note..."
+                placeholder="Take a note... (new notes are checklists by default)"
                 rows="2"
                 class="w-full mt-2 bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 placeholder-gray-500 resize-none"
               ><%= @quick_note.content %></textarea>
             </div>
             <div class="flex items-center justify-between px-4 py-2 border-t border-gray-100 dark:border-gray-700">
-              <div class="flex space-x-2">
-                <!-- Quick actions would go here -->
+              <div class="flex items-center space-x-2 text-xs text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span>Checklist</span>
               </div>
               <button
                 type="submit"
@@ -203,9 +217,15 @@
         <%= if length(pinned) > 0 && @current_view == :notes do %>
           <div class="mb-6">
             <h3 class="px-2 mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pinned</h3>
-            <div class={if @view_mode == :grid, do: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", else: "space-y-2 max-w-xl mx-auto"}>
+            <div 
+              id="pinned-notes-grid"
+              phx-hook="SortableGrid"
+              class={if @view_mode == :grid, do: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", else: "space-y-2 max-w-xl mx-auto"}
+            >
               <%= for note <- pinned do %>
-                <.note_card note={note} view_mode={@view_mode} current_view={@current_view} labels={@labels} />
+                <div data-sortable-id={note.id} data-id={note.id}>
+                  <.note_card note={note} view_mode={@view_mode} current_view={@current_view} labels={@labels} />
+                </div>
               <% end %>
             </div>
           </div>
@@ -215,9 +235,15 @@
           <%= if length(pinned) > 0 && @current_view == :notes do %>
             <h3 class="px-2 mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Others</h3>
           <% end %>
-          <div class={if @view_mode == :grid, do: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", else: "space-y-2 max-w-xl mx-auto"}>
+          <div 
+            id="notes-grid"
+            phx-hook="SortableGrid"
+            class={if @view_mode == :grid, do: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", else: "space-y-2 max-w-xl mx-auto"}
+          >
             <%= for note <- (if @current_view == :notes, do: unpinned, else: @notes) do %>
-              <.note_card note={note} view_mode={@view_mode} current_view={@current_view} labels={@labels} />
+              <div data-sortable-id={note.id} data-id={note.id}>
+                <.note_card note={note} view_mode={@view_mode} current_view={@current_view} labels={@labels} />
+              </div>
             <% end %>
           </div>
         <% end %>
@@ -333,14 +359,14 @@
             <%= if length(@editing_note.labels) > 0 do %>
               <div class="flex flex-wrap gap-2 mt-4">
                 <%= for label <- @editing_note.labels do %>
-                  <span class="inline-flex items-center px-2 py-1 text-xs bg-gray-200 dark:bg-gray-600 rounded-full text-gray-700 dark:text-gray-300">
+                  <span class={"inline-flex items-center px-2 py-1 text-xs rounded-full " <> label_badge_class(label.color)}>
                     <%= label.name %>
                     <button
                       type="button"
                       phx-click="remove_label_from_note"
                       phx-value-note_id={@editing_note.id}
                       phx-value-label_id={label.id}
-                      class="ml-1 text-gray-400 hover:text-gray-600"
+                      class="ml-1 opacity-70 hover:opacity-100"
                     >
                       ×
                     </button>
@@ -395,40 +421,58 @@
                 </div>
 
                 <!-- Label picker -->
-                <div class="relative group">
+                <div class="relative">
                   <button
                     type="button"
-                    class="p-2 text-gray-400 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
+                    phx-click="toggle_label_popover"
+                    class={"p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 " <> if(@label_popover_open, do: "text-blue-500 bg-gray-200 dark:bg-gray-600", else: "text-gray-400")}
                     title="Add label"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
                   </button>
-                  <div class="absolute left-0 bottom-full mb-2 hidden group-hover:block bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 z-10 min-w-[150px]">
-                    <%= for label <- @labels do %>
-                      <% has_label = Enum.any?(@editing_note.labels, & &1.id == label.id) %>
-                      <button
-                        type="button"
-                        phx-click={if has_label, do: "remove_label_from_note", else: "add_label_to_note"}
-                        phx-value-note_id={@editing_note.id}
-                        phx-value-label_id={label.id}
-                        class="flex items-center w-full px-3 py-2 text-sm text-left rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                      >
-                        <span class={"w-4 h-4 mr-2 border rounded " <> if(has_label, do: "bg-blue-500 border-blue-500", else: "border-gray-300")}>
-                          <%= if has_label do %>
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                          <% end %>
-                        </span>
-                        <%= label.name %>
-                      </button>
-                    <% end %>
-                    <%= if length(@labels) == 0 do %>
-                      <p class="px-3 py-2 text-sm text-gray-400">No labels yet</p>
-                    <% end %>
-                  </div>
+                  <%= if @label_popover_open do %>
+                    <!-- Backdrop to catch clicks outside -->
+                    <div class="fixed inset-0 z-10" phx-click="close_label_popover"></div>
+                    <div class="absolute left-0 bottom-full mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 z-20 min-w-[180px]">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 px-3 py-1 mb-1 font-medium">Labels</div>
+                      <%= for label <- @labels do %>
+                        <% has_label = Enum.any?(@editing_note.labels, & &1.id == label.id) %>
+                        <button
+                          type="button"
+                          phx-click={if has_label, do: "remove_label_from_note", else: "add_label_to_note"}
+                          phx-value-note_id={@editing_note.id}
+                          phx-value-label_id={label.id}
+                          class="flex items-center w-full px-3 py-2 text-sm text-left rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        >
+                          <span class={"w-4 h-4 mr-2 border rounded flex items-center justify-center " <> if(has_label, do: "bg-blue-500 border-blue-500", else: "border-gray-300")}>
+                            <%= if has_label do %>
+                              <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                              </svg>
+                            <% end %>
+                          </span>
+                          <span class={"w-3 h-3 rounded-full mr-2"} style={"background-color: #{label_color_hex(label.color)}"}></span>
+                          <%= label.name %>
+                        </button>
+                      <% end %>
+                      <%= if length(@labels) == 0 do %>
+                        <p class="px-3 py-2 text-sm text-gray-400">No labels yet</p>
+                      <% end %>
+                      <div class="border-t border-gray-200 dark:border-gray-700 mt-1 pt-1">
+                        <.link
+                          navigate={~p"/labels"}
+                          class="flex items-center w-full px-3 py-2 text-sm text-left rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+                        >
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          Manage labels
+                        </.link>
+                      </div>
+                    </div>
+                  <% end %>
                 </div>
 
                 <!-- Toggle checklist -->

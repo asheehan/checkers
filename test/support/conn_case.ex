@@ -27,11 +27,13 @@ defmodule CheckersWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
+      import Phoenix.LiveViewTest
       import CheckersWeb.ConnCase
     end
   end
 
-  setup _tags do
+  setup tags do
+    Checkers.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

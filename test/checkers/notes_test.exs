@@ -134,12 +134,16 @@ defmodule Checkers.NotesTest do
       assert updated.color == "purple"
     end
 
-    test "toggle_checklist/1 converts note to checklist mode" do
+    test "toggle_checklist/1 toggles checklist mode" do
+      # New notes default to checklist mode
       note = note_fixture()
-      assert note.is_checklist == false
+      assert note.is_checklist == true
 
-      {:ok, checklist} = Notes.toggle_checklist(note)
-      assert checklist.is_checklist == true
+      {:ok, toggled} = Notes.toggle_checklist(note)
+      assert toggled.is_checklist == false
+
+      {:ok, toggled_back} = Notes.toggle_checklist(toggled)
+      assert toggled_back.is_checklist == true
     end
   end
 
@@ -242,6 +246,18 @@ defmodule Checkers.NotesTest do
       results = Notes.list_notes(search: "meeting")
       assert length(results) == 1
       assert hd(results).content == "Important meeting tomorrow"
+    end
+
+    test "list_notes/1 searches by checklist item content" do
+      note = note_fixture(%{title: "Shopping", is_checklist: true})
+      {:ok, _item1} = Notes.create_checklist_item(note, %{content: "Buy milk"})
+      {:ok, _item2} = Notes.create_checklist_item(note, %{content: "Buy bread"})
+      
+      _other_note = note_fixture(%{title: "Work", content: "Do something"})
+
+      results = Notes.list_notes(search: "milk")
+      assert length(results) == 1
+      assert hd(results).title == "Shopping"
     end
   end
 end

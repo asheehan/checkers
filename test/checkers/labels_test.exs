@@ -71,5 +71,26 @@ defmodule Checkers.LabelsTest do
       label = label_fixture()
       assert %Ecto.Changeset{} = Labels.change_label(label)
     end
+
+    test "create_label/1 with color creates a label with that color" do
+      assert {:ok, %Label{} = label} = Labels.create_label(%{name: "Urgent", color: "red"})
+      assert label.name == "Urgent"
+      assert label.color == "red"
+    end
+
+    test "create_label/1 without color defaults to gray" do
+      assert {:ok, %Label{} = label} = Labels.create_label(%{name: "Default Color"})
+      assert label.color == "gray"
+    end
+
+    test "update_label/2 can update the color" do
+      label = label_fixture()
+      assert {:ok, %Label{} = updated} = Labels.update_label(label, %{color: "blue"})
+      assert updated.color == "blue"
+    end
+
+    test "create_label/1 with invalid color returns error" do
+      assert {:error, %Ecto.Changeset{}} = Labels.create_label(%{name: "Bad", color: "neon"})
+    end
   end
 end

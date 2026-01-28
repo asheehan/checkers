@@ -17,6 +17,7 @@ defmodule CheckersWeb.NotesLive do
      |> assign(:show_sidebar, true)
      |> assign(:editing_note, nil)
      |> assign(:selected_label, nil)
+     |> assign(:label_popover_open, false)
      |> assign(:quick_note, %{title: "", content: ""})}
   end
 
@@ -293,7 +294,54 @@ defmodule CheckersWeb.NotesLive do
     {:noreply,
      socket
      |> assign(:editing_note, nil)
+     |> assign(:label_popover_open, false)
      |> push_patch(to: current_path(socket))}
+  end
+
+  @impl true
+  def handle_event("toggle_label_popover", _params, socket) do
+    {:noreply, assign(socket, :label_popover_open, !socket.assigns.label_popover_open)}
+  end
+
+  @impl true
+  def handle_event("close_label_popover", _params, socket) do
+    {:noreply, assign(socket, :label_popover_open, false)}
+  end
+
+  # Drag and drop handlers
+  @impl true
+  def handle_event("reorder_notes", %{"ids" => ids}, socket) do
+    Notes.update_positions(ids)
+    {:noreply, refresh_notes(socket)}
+  end
+
+  @impl true
+  def handle_event("drop_to_archive", %{"id" => id}, socket) do
+    note = Notes.get_note!(id)
+    {:ok, _note} = Notes.archive_note(note)
+    {:noreply, refresh_notes(socket)}
+  end
+
+  @impl true
+  def handle_event("drop_to_trash", %{"id" => id}, socket) do
+    note = Notes.get_note!(id)
+    {:ok, _note} = Notes.trash_note(note)
+    {:noreply, refresh_notes(socket)}
+  end
+
+  @impl true
+  def handle_event("drop_to_notes", %{"id" => id}, socket) do
+    note = Notes.get_note!(id)
+    # Restore from archive or trash
+    cond do
+      note.is_archived ->
+        {:ok, _note} = Notes.unarchive_note(note)
+      note.deleted_at != nil ->
+        {:ok, _note} = Notes.restore_note(note)
+      true ->
+        :ok
+    end
+    {:noreply, refresh_notes(socket)}
   end
 
   defp refresh_notes(socket) do
@@ -337,6 +385,32 @@ defmodule CheckersWeb.NotesLive do
   def color_class(color) do
     {_, _, class, _} = Enum.find(note_colors(), fn {c, _, _, _} -> c == color end) || {"default", "", "bg-white dark:bg-gray-800", ""}
     class
+  end
+
+  # Label color mapping (tailwind classes for badges)
+  def label_colors do
+    %{
+      "gray" => {"bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200", "#6b7280"},
+      "red" => {"bg-red-200 text-red-800 dark:bg-red-900/50 dark:text-red-200", "#ef4444"},
+      "orange" => {"bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200", "#f97316"},
+      "yellow" => {"bg-yellow-200 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200", "#eab308"},
+      "green" => {"bg-green-200 text-green-800 dark:bg-green-900/50 dark:text-green-200", "#22c55e"},
+      "teal" => {"bg-teal-200 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200", "#14b8a6"},
+      "blue" => {"bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200", "#3b82f6"},
+      "purple" => {"bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200", "#a855f7"},
+      "pink" => {"bg-pink-200 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200", "#ec4899"},
+      "brown" => {"bg-amber-200 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200", "#d97706"}
+    }
+  end
+
+  def label_badge_class(color) do
+    {class, _hex} = Map.get(label_colors(), color || "gray", {"bg-gray-200 text-gray-700", "#6b7280"})
+    class
+  end
+
+  def label_color_hex(color) do
+    {_class, hex} = Map.get(label_colors(), color || "gray", {"", "#6b7280"})
+    hex
   end
 
   attr :note, Note, required: true
@@ -391,7 +465,7 @@ defmodule CheckersWeb.NotesLive do
         <%= if length(@note.labels) > 0 do %>
           <div class="flex flex-wrap gap-1 mt-3">
             <%= for label <- @note.labels do %>
-              <span class="px-2 py-0.5 text-xs bg-gray-200/50 dark:bg-gray-600/50 rounded-full text-gray-600 dark:text-gray-400">
+              <span class={"px-2 py-0.5 text-xs rounded-full " <> label_badge_class(label.color)}>
                 <%= label.name %>
               </span>
             <% end %>

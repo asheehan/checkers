@@ -13,7 +13,7 @@ defmodule Checkers.Notes.Note do
     field :color, :string, default: "default"
     field :is_pinned, :boolean, default: false
     field :is_archived, :boolean, default: false
-    field :is_checklist, :boolean, default: false
+    field :is_checklist, :boolean, default: true
     field :position, :integer, default: 0
     field :deleted_at, :utc_datetime
 

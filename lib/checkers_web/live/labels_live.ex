@@ -2,6 +2,7 @@ defmodule CheckersWeb.LabelsLive do
   use CheckersWeb, :live_view
 
   alias Checkers.Labels
+  alias Checkers.Labels.Label
 
   @impl true
   def mount(_params, _session, socket) do
@@ -10,7 +11,9 @@ defmodule CheckersWeb.LabelsLive do
      |> assign(:page_title, "Edit Labels")
      |> assign(:labels, Labels.list_labels())
      |> assign(:editing_label, nil)
-     |> assign(:new_label_name, "")}
+     |> assign(:new_label_name, "")
+     |> assign(:new_label_color, "gray")
+     |> assign(:editing_color, nil)}
   end
 
   @impl true
@@ -21,12 +24,13 @@ defmodule CheckersWeb.LabelsLive do
   @impl true
   def handle_event("create_label", %{"name" => name}, socket) do
     if name != "" do
-      case Labels.create_label(%{name: name}) do
+      case Labels.create_label(%{name: name, color: socket.assigns.new_label_color}) do
         {:ok, _label} ->
           {:noreply,
            socket
            |> assign(:labels, Labels.list_labels())
-           |> assign(:new_label_name, "")}
+           |> assign(:new_label_name, "")
+           |> assign(:new_label_color, "gray")}
 
         {:error, _changeset} ->
           {:noreply, put_flash(socket, :error, "Label already exists")}
@@ -37,19 +41,31 @@ defmodule CheckersWeb.LabelsLive do
   end
 
   @impl true
+  def handle_event("set_new_label_color", %{"color" => color}, socket) do
+    {:noreply, assign(socket, :new_label_color, color)}
+  end
+
+  @impl true
   def handle_event("update_label", %{"id" => id, "name" => name}, socket) do
     label = Labels.get_label!(id)
+    color = socket.assigns.editing_color || label.color
 
-    case Labels.update_label(label, %{name: name}) do
+    case Labels.update_label(label, %{name: name, color: color}) do
       {:ok, _label} ->
         {:noreply,
          socket
          |> assign(:labels, Labels.list_labels())
-         |> assign(:editing_label, nil)}
+         |> assign(:editing_label, nil)
+         |> assign(:editing_color, nil)}
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, "Could not update label")}
     end
+  end
+
+  @impl true
+  def handle_event("set_editing_color", %{"color" => color}, socket) do
+    {:noreply, assign(socket, :editing_color, color)}
   end
 
   @impl true
@@ -64,12 +80,39 @@ defmodule CheckersWeb.LabelsLive do
 
   @impl true
   def handle_event("start_editing", %{"id" => id}, socket) do
-    {:noreply, assign(socket, :editing_label, id)}
+    label = Labels.get_label!(id)
+    {:noreply, 
+     socket
+     |> assign(:editing_label, id)
+     |> assign(:editing_color, label.color)}
   end
 
   @impl true
   def handle_event("cancel_editing", _params, socket) do
-    {:noreply, assign(socket, :editing_label, nil)}
+    {:noreply, 
+     socket
+     |> assign(:editing_label, nil)
+     |> assign(:editing_color, nil)}
+  end
+
+  # Label color helpers
+  def label_colors do
+    Label.colors()
+  end
+
+  def color_hex(color) do
+    %{
+      "gray" => "#6b7280",
+      "red" => "#ef4444",
+      "orange" => "#f97316",
+      "yellow" => "#eab308",
+      "green" => "#22c55e",
+      "teal" => "#14b8a6",
+      "blue" => "#3b82f6",
+      "purple" => "#a855f7",
+      "pink" => "#ec4899",
+      "brown" => "#d97706"
+    }[color] || "#6b7280"
   end
 
   @impl true
@@ -97,9 +140,24 @@ defmodule CheckersWeb.LabelsLive do
           <!-- Create new label -->
           <div class="p-4 border-b border-gray-200 dark:border-gray-700">
             <form phx-submit="create_label" class="flex items-center">
-              <svg class="w-5 h-5 mr-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
+              <div class="relative group mr-4">
+                <button 
+                  type="button"
+                  class="w-6 h-6 rounded-full border-2 border-gray-300"
+                  style={"background-color: #{color_hex(@new_label_color)}"}
+                />
+                <div class="absolute left-0 top-full mt-1 hidden group-hover:flex gap-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 z-10">
+                  <%= for color <- label_colors() do %>
+                    <button
+                      type="button"
+                      phx-click="set_new_label_color"
+                      phx-value-color={color}
+                      class={"w-6 h-6 rounded-full border-2 " <> if(color == @new_label_color, do: "border-blue-500", else: "border-transparent hover:border-gray-300")}
+                      style={"background-color: #{color_hex(color)}"}
+                    />
+                  <% end %>
+                </div>
+              </div>
               <input
                 type="text"
                 name="name"
@@ -125,9 +183,24 @@ defmodule CheckersWeb.LabelsLive do
                   phx-value-id={label.id}
                   class="flex items-center flex-1"
                 >
-                  <svg class="w-5 h-5 mr-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
+                  <div class="relative group/color mr-4">
+                    <button 
+                      type="button"
+                      class="w-6 h-6 rounded-full border-2 border-gray-300"
+                      style={"background-color: #{color_hex(@editing_color || label.color)}"}
+                    />
+                    <div class="absolute left-0 top-full mt-1 hidden group-hover/color:flex gap-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 z-10">
+                      <%= for color <- label_colors() do %>
+                        <button
+                          type="button"
+                          phx-click="set_editing_color"
+                          phx-value-color={color}
+                          class={"w-6 h-6 rounded-full border-2 " <> if(color == (@editing_color || label.color), do: "border-blue-500", else: "border-transparent hover:border-gray-300")}
+                          style={"background-color: #{color_hex(color)}"}
+                        />
+                      <% end %>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     name="name"
@@ -165,9 +238,14 @@ defmodule CheckersWeb.LabelsLive do
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
-                <svg class="w-5 h-5 mr-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
+                <span 
+                  class="w-6 h-6 rounded-full mr-4 flex items-center justify-center"
+                  style={"background-color: #{color_hex(label.color)}"}
+                >
+                  <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </span>
                 <span class="flex-1 text-gray-700 dark:text-gray-300"><%= label.name %></span>
                 <button
                   type="button"

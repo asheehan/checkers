@@ -25,11 +25,119 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/checkers"
 import topbar from "../vendor/topbar"
 
+// Drag and Drop Hooks
+const DragDropHooks = {
+  Draggable: {
+    mounted() {
+      this.el.setAttribute("draggable", "true")
+      
+      this.el.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", this.el.dataset.id)
+        e.dataTransfer.effectAllowed = "move"
+        this.el.classList.add("opacity-50", "scale-95")
+        // Notify other drop zones that drag has started
+        document.dispatchEvent(new CustomEvent("drag-started", { detail: { id: this.el.dataset.id } }))
+      })
+      
+      this.el.addEventListener("dragend", (e) => {
+        this.el.classList.remove("opacity-50", "scale-95")
+        document.dispatchEvent(new CustomEvent("drag-ended"))
+      })
+    }
+  },
+  
+  DropZone: {
+    mounted() {
+      this.el.addEventListener("dragover", (e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = "move"
+        this.el.classList.add("ring-2", "ring-blue-400", "bg-blue-50", "dark:bg-blue-900/20")
+      })
+      
+      this.el.addEventListener("dragleave", (e) => {
+        this.el.classList.remove("ring-2", "ring-blue-400", "bg-blue-50", "dark:bg-blue-900/20")
+      })
+      
+      this.el.addEventListener("drop", (e) => {
+        e.preventDefault()
+        this.el.classList.remove("ring-2", "ring-blue-400", "bg-blue-50", "dark:bg-blue-900/20")
+        const id = e.dataTransfer.getData("text/plain")
+        const action = this.el.dataset.dropAction
+        if (action && id) {
+          this.pushEvent(action, { id: id })
+        }
+      })
+      
+      // Show visual indicator when drag starts
+      document.addEventListener("drag-started", (e) => {
+        this.el.classList.add("transition-all")
+      })
+      
+      document.addEventListener("drag-ended", () => {
+        this.el.classList.remove("ring-2", "ring-blue-400", "bg-blue-50", "dark:bg-blue-900/20")
+      })
+    }
+  },
+  
+  SortableGrid: {
+    mounted() {
+      this.setupDragDrop()
+    },
+    
+    updated() {
+      // Re-setup after LiveView updates
+      this.setupDragDrop()
+    },
+    
+    setupDragDrop() {
+      const cards = this.el.querySelectorAll("[data-sortable-id]")
+      
+      cards.forEach(card => {
+        card.setAttribute("draggable", "true")
+        
+        card.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", card.dataset.sortableId)
+          e.dataTransfer.effectAllowed = "move"
+          card.classList.add("opacity-50", "scale-95")
+          document.dispatchEvent(new CustomEvent("drag-started", { detail: { id: card.dataset.sortableId } }))
+        })
+        
+        card.addEventListener("dragend", () => {
+          card.classList.remove("opacity-50", "scale-95")
+          document.dispatchEvent(new CustomEvent("drag-ended"))
+        })
+        
+        card.addEventListener("dragover", (e) => {
+          e.preventDefault()
+          const dragging = this.el.querySelector(".opacity-50")
+          if (dragging && dragging !== card) {
+            const rect = card.getBoundingClientRect()
+            const midY = rect.top + rect.height / 2
+            if (e.clientY < midY) {
+              card.parentNode.insertBefore(dragging, card)
+            } else {
+              card.parentNode.insertBefore(dragging, card.nextSibling)
+            }
+          }
+        })
+        
+        card.addEventListener("drop", (e) => {
+          e.preventDefault()
+          // Collect new order and send to server
+          const newOrder = Array.from(this.el.querySelectorAll("[data-sortable-id]"))
+            .map(c => c.dataset.sortableId)
+          this.pushEvent("reorder_notes", { ids: newOrder })
+        })
+      })
+    }
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, ...DragDropHooks},
 })
 
 // Show progress bar on live navigation and form submits
