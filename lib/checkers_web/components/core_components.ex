@@ -181,7 +181,7 @@ defmodule CheckersWeb.CoreComponents do
                 multiple pattern placeholder readonly required rows size step)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
-    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+    errors = field.errors
 
     assigns
     |> assign(field: nil, id: assigns.id || field.id)

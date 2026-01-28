@@ -1,4 +1,7 @@
 defmodule Checkers.Notes.ChecklistItem do
+  @moduledoc """
+  Schema for individual checklist items within a note.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

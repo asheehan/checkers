@@ -1,9 +1,9 @@
 defmodule Checkers.NotesTest do
   use Checkers.DataCase
 
+  alias Checkers.Labels
   alias Checkers.Notes
   alias Checkers.Notes.Note
-  alias Checkers.Labels
 
   describe "notes" do
     @valid_attrs %{title: "Test Note", content: "Test content", color: "blue"}
@@ -252,7 +252,7 @@ defmodule Checkers.NotesTest do
       note = note_fixture(%{title: "Shopping", is_checklist: true})
       {:ok, _item1} = Notes.create_checklist_item(note, %{content: "Buy milk"})
       {:ok, _item2} = Notes.create_checklist_item(note, %{content: "Buy bread"})
-      
+
       _other_note = note_fixture(%{title: "Work", content: "Do something"})
 
       results = Notes.list_notes(search: "milk")

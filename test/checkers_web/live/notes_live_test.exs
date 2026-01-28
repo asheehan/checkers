@@ -4,8 +4,8 @@ defmodule CheckersWeb.NotesLiveTest do
   # Tag as live tests for optional exclusion (compatibility issues with Elixir 1.14)
   @moduletag :live
 
-  alias Checkers.Notes
   alias Checkers.Labels
+  alias Checkers.Notes
 
   describe "index" do
     test "renders notes page", %{conn: conn} do

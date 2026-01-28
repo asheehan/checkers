@@ -1,9 +1,9 @@
 defmodule CheckersWeb.NotesLive do
   use CheckersWeb, :live_view
 
+  alias Checkers.Labels
   alias Checkers.Notes
   alias Checkers.Notes.Note
-  alias Checkers.Labels
 
   @impl true
   def mount(_params, _session, socket) do

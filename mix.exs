@@ -57,10 +57,12 @@ defmodule Checkers.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:plug_cowboy, "~> 2.5"},
+      {:bandit, "~> 1.0"},
       # Database
       {:ecto_sql, "~> 3.10"},
-      {:ecto_sqlite3, "~> 0.12"}
+      {:ecto_sqlite3, "~> 0.12"},
+      # Code quality
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 

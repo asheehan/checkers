@@ -1,4 +1,7 @@
 defmodule Checkers.Labels.Label do
+  @moduledoc """
+  Schema for labels that can be attached to notes for organization.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

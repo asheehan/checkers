@@ -4,9 +4,10 @@ defmodule Checkers.Notes do
   """
 
   import Ecto.Query, warn: false
-  alias Checkers.Repo
-  alias Checkers.Notes.{Note, ChecklistItem}
+
   alias Checkers.Labels.Label
+  alias Checkers.Notes.{ChecklistItem, Note}
+  alias Checkers.Repo
 
   # ============================================================
   # Notes CRUD

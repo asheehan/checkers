@@ -4,8 +4,9 @@ defmodule Checkers.Labels do
   """
 
   import Ecto.Query, warn: false
-  alias Checkers.Repo
+
   alias Checkers.Labels.Label
+  alias Checkers.Repo
 
   @doc """
   Returns the list of all labels ordered by name.

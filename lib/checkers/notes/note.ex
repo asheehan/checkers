@@ -1,4 +1,7 @@
 defmodule Checkers.Notes.Note do
+  @moduledoc """
+  Schema for notes/checklists. Notes can be pinned, archived, or trashed.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

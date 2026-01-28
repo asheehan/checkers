@@ -81,7 +81,7 @@ defmodule CheckersWeb.LabelsLive do
   @impl true
   def handle_event("start_editing", %{"id" => id}, socket) do
     label = Labels.get_label!(id)
-    {:noreply, 
+    {:noreply,
      socket
      |> assign(:editing_label, id)
      |> assign(:editing_color, label.color)}
@@ -89,7 +89,7 @@ defmodule CheckersWeb.LabelsLive do
 
   @impl true
   def handle_event("cancel_editing", _params, socket) do
-    {:noreply, 
+    {:noreply,
      socket
      |> assign(:editing_label, nil)
      |> assign(:editing_color, nil)}
@@ -141,7 +141,7 @@ defmodule CheckersWeb.LabelsLive do
           <div class="p-4 border-b border-gray-200 dark:border-gray-700">
             <form phx-submit="create_label" class="flex items-center">
               <div class="relative group mr-4">
-                <button 
+                <button
                   type="button"
                   class="w-6 h-6 rounded-full border-2 border-gray-300"
                   style={"background-color: #{color_hex(@new_label_color)}"}
@@ -184,7 +184,7 @@ defmodule CheckersWeb.LabelsLive do
                   class="flex items-center flex-1"
                 >
                   <div class="relative group/color mr-4">
-                    <button 
+                    <button
                       type="button"
                       class="w-6 h-6 rounded-full border-2 border-gray-300"
                       style={"background-color: #{color_hex(@editing_color || label.color)}"}
@@ -238,7 +238,7 @@ defmodule CheckersWeb.LabelsLive do
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
-                <span 
+                <span
                   class="w-6 h-6 rounded-full mr-4 flex items-center justify-center"
                   style={"background-color: #{color_hex(label.color)}"}
                 >
