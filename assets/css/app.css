@@ -1,0 +1,78 @@
+/* Tailwind CSS */
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/checkers_web";
+
+/* Heroicons plugin */
+@plugin "../vendor/heroicons";
+
+/* Add variants based on LiveView classes */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+/* Dark mode using class strategy */
+@custom-variant dark (.dark &);
+
+/* Make LiveView wrapper divs transparent for layout */
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* Google Keep inspired note colors */
+.note-default { @apply bg-white; }
+.note-red { background-color: #f28b82; }
+.note-orange { background-color: #fbbc04; }
+.note-yellow { background-color: #fff475; }
+.note-green { background-color: #ccff90; }
+.note-teal { background-color: #a7ffeb; }
+.note-blue { background-color: #cbf0f8; }
+.note-purple { background-color: #d7aefb; }
+.note-pink { background-color: #fdcfe8; }
+.note-brown { background-color: #e6c9a8; }
+.note-gray { background-color: #e8eaed; }
+
+/* Dark mode note colors */
+.dark .note-default { @apply bg-gray-800; }
+.dark .note-red { background-color: rgba(242, 139, 130, 0.3); }
+.dark .note-orange { background-color: rgba(251, 188, 4, 0.3); }
+.dark .note-yellow { background-color: rgba(255, 244, 117, 0.3); }
+.dark .note-green { background-color: rgba(204, 255, 144, 0.3); }
+.dark .note-teal { background-color: rgba(167, 255, 235, 0.3); }
+.dark .note-blue { background-color: rgba(203, 240, 248, 0.3); }
+.dark .note-purple { background-color: rgba(215, 174, 251, 0.3); }
+.dark .note-pink { background-color: rgba(253, 207, 232, 0.3); }
+.dark .note-brown { background-color: rgba(230, 201, 168, 0.3); }
+.dark .note-gray { background-color: rgba(232, 234, 237, 0.2); }
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
