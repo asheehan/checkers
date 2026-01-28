@@ -10,7 +10,17 @@ defmodule Checkers.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      compilers: Mix.compilers()
+      compilers: Mix.compilers(),
+      releases: releases()
+    ]
+  end
+
+  defp releases do
+    [
+      checkers: [
+        include_executables_for: [:unix],
+        applications: [runtime_tools: :permanent]
+      ]
     ]
   end
 
