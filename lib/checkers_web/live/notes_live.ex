@@ -13,7 +13,7 @@ defmodule CheckersWeb.NotesLive do
      |> assign(:labels, Labels.list_labels())
      |> assign(:search, "")
      |> assign(:view_mode, :grid)
-     |> assign(:dark_mode, false)
+     |> assign(:dark_mode, true)
      |> assign(:show_sidebar, false)
      |> assign(:editing_note, nil)
      |> assign(:selected_label, nil)
