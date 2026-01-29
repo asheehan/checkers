@@ -99,9 +99,9 @@
   </header>
 
   <div class="flex">
-    <!-- Sidebar -->
-    <aside class={"fixed lg:relative z-30 h-[calc(100vh-4rem)] bg-white dark:bg-gray-800 transition-all duration-300 " <>
-        if(@show_sidebar, do: "w-64 translate-x-0", else: "w-0 -translate-x-full lg:w-0")}>
+    <!-- Sidebar - hidden on mobile by default, always visible on lg+ -->
+    <aside class={"fixed lg:relative z-30 h-[calc(100vh-4rem)] bg-white dark:bg-gray-800 transition-all duration-300 lg:w-64 lg:translate-x-0 " <>
+        if(@show_sidebar, do: "w-64 translate-x-0", else: "w-0 -translate-x-full")}>
       <nav class="p-2 overflow-hidden">
         <.link
           navigate={~p"/"}

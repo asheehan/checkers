@@ -14,7 +14,7 @@ defmodule CheckersWeb.NotesLive do
      |> assign(:search, "")
      |> assign(:view_mode, :grid)
      |> assign(:dark_mode, false)
-     |> assign(:show_sidebar, true)
+     |> assign(:show_sidebar, false)
      |> assign(:editing_note, nil)
      |> assign(:selected_label, nil)
      |> assign(:label_popover_open, false)
@@ -91,8 +91,23 @@ defmodule CheckersWeb.NotesLive do
   def handle_event("create_note", %{"note" => note_params}, socket) do
     # Only create if there's content
     if note_params["title"] != "" or note_params["content"] != "" do
+      # Always create as checklist
+      note_params = Map.put(note_params, "is_checklist", true)
+
       case Notes.create_note(note_params) do
-        {:ok, _note} ->
+        {:ok, note} ->
+          # Convert content lines into checklist items
+          if note_params["content"] && note_params["content"] != "" do
+            note_params["content"]
+            |> String.split("\n", trim: true)
+            |> Enum.each(fn line ->
+              Notes.create_checklist_item(note, %{content: String.trim(line)})
+            end)
+
+            # Clear the content field since it's now in checklist items
+            Notes.update_note(note, %{content: ""})
+          end
+
           {:noreply,
            socket
            |> assign(:quick_note, %{title: "", content: ""})
