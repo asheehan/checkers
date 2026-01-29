@@ -89,36 +89,42 @@ defmodule CheckersWeb.NotesLive do
 
   @impl true
   def handle_event("create_note", %{"note" => note_params}, socket) do
-    # Only create if there's content
-    if note_params["title"] != "" or note_params["content"] != "" do
-      # Always create as checklist
-      note_params = Map.put(note_params, "is_checklist", true)
-
-      case Notes.create_note(note_params) do
-        {:ok, note} ->
-          # Convert content lines into checklist items
-          if note_params["content"] && note_params["content"] != "" do
-            note_params["content"]
-            |> String.split("\n", trim: true)
-            |> Enum.each(fn line ->
-              Notes.create_checklist_item(note, %{content: String.trim(line)})
-            end)
-
-            # Clear the content field since it's now in checklist items
-            Notes.update_note(note, %{content: ""})
-          end
-
-          {:noreply,
-           socket
-           |> assign(:quick_note, %{title: "", content: ""})
-           |> refresh_notes()}
-
-        {:error, _changeset} ->
-          {:noreply, socket}
-      end
-    else
+    if note_params["title"] == "" and note_params["content"] == "" do
       {:noreply, socket}
+    else
+      create_checklist_note(note_params, socket)
     end
+  end
+
+  defp create_checklist_note(note_params, socket) do
+    note_params = Map.put(note_params, "is_checklist", true)
+
+    case Notes.create_note(note_params) do
+      {:ok, note} ->
+        convert_content_to_checklist_items(note, note_params["content"])
+
+        {:noreply,
+         socket
+         |> assign(:quick_note, %{title: "", content: ""})
+         |> refresh_notes()}
+
+      {:error, _changeset} ->
+        {:noreply, socket}
+    end
+  end
+
+  defp convert_content_to_checklist_items(_note, nil), do: :ok
+  defp convert_content_to_checklist_items(_note, ""), do: :ok
+
+  defp convert_content_to_checklist_items(note, content) do
+    content
+    |> String.split("\n", trim: true)
+    |> Enum.each(fn line ->
+      Notes.create_checklist_item(note, %{content: String.trim(line)})
+    end)
+
+    # Clear the content field since it's now in checklist items
+    Notes.update_note(note, %{content: ""})
   end
 
   @impl true
