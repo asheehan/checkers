@@ -96,37 +96,6 @@ defmodule CheckersWeb.NotesLive do
     end
   end
 
-  defp create_checklist_note(note_params, socket) do
-    note_params = Map.put(note_params, "is_checklist", true)
-
-    case Notes.create_note(note_params) do
-      {:ok, note} ->
-        convert_content_to_checklist_items(note, note_params["content"])
-
-        {:noreply,
-         socket
-         |> assign(:quick_note, %{title: "", content: ""})
-         |> refresh_notes()}
-
-      {:error, _changeset} ->
-        {:noreply, socket}
-    end
-  end
-
-  defp convert_content_to_checklist_items(_note, nil), do: :ok
-  defp convert_content_to_checklist_items(_note, ""), do: :ok
-
-  defp convert_content_to_checklist_items(note, content) do
-    content
-    |> String.split("\n", trim: true)
-    |> Enum.each(fn line ->
-      Notes.create_checklist_item(note, %{content: String.trim(line)})
-    end)
-
-    # Clear the content field since it's now in checklist items
-    Notes.update_note(note, %{content: ""})
-  end
-
   @impl true
   def handle_event("update_note", %{"note" => note_params}, socket) do
     case Notes.update_note(socket.assigns.editing_note, note_params) do
@@ -378,6 +347,37 @@ defmodule CheckersWeb.NotesLive do
       end
 
     assign(socket, :notes, notes)
+  end
+
+  defp create_checklist_note(note_params, socket) do
+    note_params = Map.put(note_params, "is_checklist", true)
+
+    case Notes.create_note(note_params) do
+      {:ok, note} ->
+        convert_content_to_checklist_items(note, note_params["content"])
+
+        {:noreply,
+         socket
+         |> assign(:quick_note, %{title: "", content: ""})
+         |> refresh_notes()}
+
+      {:error, _changeset} ->
+        {:noreply, socket}
+    end
+  end
+
+  defp convert_content_to_checklist_items(_note, nil), do: :ok
+  defp convert_content_to_checklist_items(_note, ""), do: :ok
+
+  defp convert_content_to_checklist_items(note, content) do
+    content
+    |> String.split("\n", trim: true)
+    |> Enum.each(fn line ->
+      Notes.create_checklist_item(note, %{content: String.trim(line)})
+    end)
+
+    # Clear the content field since it's now in checklist items
+    Notes.update_note(note, %{content: ""})
   end
 
   defp current_path(socket) do
