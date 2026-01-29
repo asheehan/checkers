@@ -336,11 +336,14 @@ defmodule CheckersWeb.NotesLive do
     cond do
       note.is_archived ->
         {:ok, _note} = Notes.unarchive_note(note)
+
       note.deleted_at != nil ->
         {:ok, _note} = Notes.restore_note(note)
+
       true ->
         :ok
     end
+
     {:noreply, refresh_notes(socket)}
   end
 
@@ -368,7 +371,8 @@ defmodule CheckersWeb.NotesLive do
   # Colors for Google Keep style
   def note_colors do
     [
-      {"default", "Default", "bg-white dark:bg-gray-800", "bg-white dark:bg-gray-800 border-gray-200"},
+      {"default", "Default", "bg-white dark:bg-gray-800",
+       "bg-white dark:bg-gray-800 border-gray-200"},
       {"red", "Red", "bg-red-100 dark:bg-red-900/30", "#f28b82"},
       {"orange", "Orange", "bg-orange-100 dark:bg-orange-900/30", "#fbbc04"},
       {"yellow", "Yellow", "bg-yellow-100 dark:bg-yellow-900/30", "#fff475"},
@@ -383,7 +387,10 @@ defmodule CheckersWeb.NotesLive do
   end
 
   def color_class(color) do
-    {_, _, class, _} = Enum.find(note_colors(), fn {c, _, _, _} -> c == color end) || {"default", "", "bg-white dark:bg-gray-800", ""}
+    {_, _, class, _} =
+      Enum.find(note_colors(), fn {c, _, _, _} -> c == color end) ||
+        {"default", "", "bg-white dark:bg-gray-800", ""}
+
     class
   end
 
@@ -392,19 +399,26 @@ defmodule CheckersWeb.NotesLive do
     %{
       "gray" => {"bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200", "#6b7280"},
       "red" => {"bg-red-200 text-red-800 dark:bg-red-900/50 dark:text-red-200", "#ef4444"},
-      "orange" => {"bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200", "#f97316"},
-      "yellow" => {"bg-yellow-200 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200", "#eab308"},
-      "green" => {"bg-green-200 text-green-800 dark:bg-green-900/50 dark:text-green-200", "#22c55e"},
+      "orange" =>
+        {"bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200", "#f97316"},
+      "yellow" =>
+        {"bg-yellow-200 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200", "#eab308"},
+      "green" =>
+        {"bg-green-200 text-green-800 dark:bg-green-900/50 dark:text-green-200", "#22c55e"},
       "teal" => {"bg-teal-200 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200", "#14b8a6"},
       "blue" => {"bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200", "#3b82f6"},
-      "purple" => {"bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200", "#a855f7"},
+      "purple" =>
+        {"bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-200", "#a855f7"},
       "pink" => {"bg-pink-200 text-pink-800 dark:bg-pink-900/50 dark:text-pink-200", "#ec4899"},
-      "brown" => {"bg-amber-200 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200", "#d97706"}
+      "brown" =>
+        {"bg-amber-200 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200", "#d97706"}
     }
   end
 
   def label_badge_class(color) do
-    {class, _hex} = Map.get(label_colors(), color || "gray", {"bg-gray-200 text-gray-700", "#6b7280"})
+    {class, _hex} =
+      Map.get(label_colors(), color || "gray", {"bg-gray-200 text-gray-700", "#6b7280"})
+
     class
   end
 
@@ -438,11 +452,20 @@ defmodule CheckersWeb.NotesLive do
               <div class="flex items-center text-sm">
                 <%= if item.is_checked do %>
                   <svg class="w-4 h-4 mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                   <span class="line-through text-gray-400"><%= item.content %></span>
                 <% else %>
-                  <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    class="w-4 h-4 mr-2 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <circle cx="12" cy="12" r="10" stroke-width="2" />
                   </svg>
                   <span class="text-gray-700 dark:text-gray-300"><%= item.content %></span>
@@ -460,7 +483,6 @@ defmodule CheckersWeb.NotesLive do
             </p>
           <% end %>
         <% end %>
-
         <!-- Labels -->
         <%= if length(@note.labels) > 0 do %>
           <div class="flex flex-wrap gap-1 mt-3">
@@ -472,7 +494,6 @@ defmodule CheckersWeb.NotesLive do
           </div>
         <% end %>
       </div>
-
       <!-- Hover actions -->
       <div class="flex items-center justify-between px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity border-t border-gray-200/50 dark:border-gray-700/50">
         <%= if @current_view == :trash do %>
@@ -484,7 +505,12 @@ defmodule CheckersWeb.NotesLive do
             title="Restore"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+              />
             </svg>
           </button>
           <button
@@ -496,7 +522,12 @@ defmodule CheckersWeb.NotesLive do
             title="Delete forever"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
         <% else %>
@@ -508,8 +539,18 @@ defmodule CheckersWeb.NotesLive do
               class={"p-2 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-700/50 " <> if(@note.is_pinned, do: "text-yellow-600", else: "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300")}
               title={if @note.is_pinned, do: "Unpin", else: "Pin"}
             >
-              <svg class="w-4 h-4" fill={if @note.is_pinned, do: "currentColor", else: "none"} stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg
+                class="w-4 h-4"
+                fill={if @note.is_pinned, do: "currentColor", else: "none"}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                />
               </svg>
             </button>
           <% end %>
@@ -522,7 +563,12 @@ defmodule CheckersWeb.NotesLive do
             title={if @current_view == :archive, do: "Unarchive", else: "Archive"}
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+              />
             </svg>
           </button>
 
@@ -534,7 +580,12 @@ defmodule CheckersWeb.NotesLive do
             title="Delete"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
         <% end %>

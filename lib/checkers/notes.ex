@@ -19,10 +19,11 @@ defmodule Checkers.Notes do
   """
   def list_notes(opts \\ []) do
     query =
-      from n in Note,
+      from(n in Note,
         where: is_nil(n.deleted_at) and n.is_archived == false,
         order_by: [desc: n.is_pinned, asc: n.position, desc: n.updated_at],
         preload: [:checklist_items, :labels]
+      )
 
     query
     |> maybe_filter_by_label(opts[:label_id])
@@ -57,10 +58,11 @@ defmodule Checkers.Notes do
   defp maybe_filter_by_label(query, nil), do: query
 
   defp maybe_filter_by_label(query, label_id) do
-    from n in query,
+    from(n in query,
       join: nl in "note_labels",
       on: nl.note_id == n.id,
       where: nl.label_id == ^label_id
+    )
   end
 
   defp maybe_search(query, nil), do: query
@@ -71,15 +73,17 @@ defmodule Checkers.Notes do
 
     # Use a subquery to find note IDs that match checklist items
     checklist_matches =
-      from ci in Checkers.Notes.ChecklistItem,
+      from(ci in Checkers.Notes.ChecklistItem,
         where: like(fragment("lower(?)", ci.content), ^search_term),
         select: ci.note_id
+      )
 
-    from n in query,
+    from(n in query,
       where:
         like(fragment("lower(?)", n.title), ^search_term) or
           like(fragment("lower(?)", n.content), ^search_term) or
           n.id in subquery(checklist_matches)
+    )
   end
 
   @doc """

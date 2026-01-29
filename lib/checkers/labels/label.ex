@@ -12,11 +12,10 @@ defmodule Checkers.Labels.Label do
   @colors ~w(gray red orange yellow green teal blue purple pink brown)
 
   schema "labels" do
-    field :name, :string
-    field :color, :string, default: "gray"
+    field(:name, :string)
+    field(:color, :string, default: "gray")
 
-    many_to_many :notes, Checkers.Notes.Note,
-      join_through: "note_labels"
+    many_to_many(:notes, Checkers.Notes.Note, join_through: "note_labels")
 
     timestamps(type: :utc_datetime)
   end

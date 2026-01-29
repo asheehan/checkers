@@ -9,11 +9,11 @@ defmodule Checkers.Notes.ChecklistItem do
   @foreign_key_type :binary_id
 
   schema "checklist_items" do
-    field :content, :string
-    field :is_checked, :boolean, default: false
-    field :position, :integer, default: 0
+    field(:content, :string)
+    field(:is_checked, :boolean, default: false)
+    field(:position, :integer, default: 0)
 
-    belongs_to :note, Checkers.Notes.Note
+    belongs_to(:note, Checkers.Notes.Note)
 
     timestamps(type: :utc_datetime)
   end

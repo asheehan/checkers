@@ -11,22 +11,24 @@ defmodule Checkers.Notes.Note do
   @colors ~w(default red orange yellow green teal blue purple pink brown gray)
 
   schema "notes" do
-    field :title, :string
-    field :content, :string
-    field :color, :string, default: "default"
-    field :is_pinned, :boolean, default: false
-    field :is_archived, :boolean, default: false
-    field :is_checklist, :boolean, default: true
-    field :position, :integer, default: 0
-    field :deleted_at, :utc_datetime
+    field(:title, :string)
+    field(:content, :string)
+    field(:color, :string, default: "default")
+    field(:is_pinned, :boolean, default: false)
+    field(:is_archived, :boolean, default: false)
+    field(:is_checklist, :boolean, default: true)
+    field(:position, :integer, default: 0)
+    field(:deleted_at, :utc_datetime)
 
-    has_many :checklist_items, Checkers.Notes.ChecklistItem,
+    has_many(:checklist_items, Checkers.Notes.ChecklistItem,
       on_delete: :delete_all,
       preload_order: [asc: :position]
+    )
 
-    many_to_many :labels, Checkers.Labels.Label,
+    many_to_many(:labels, Checkers.Labels.Label,
       join_through: "note_labels",
       on_replace: :delete
+    )
 
     timestamps(type: :utc_datetime)
   end
@@ -34,7 +36,16 @@ defmodule Checkers.Notes.Note do
   @doc false
   def changeset(note, attrs) do
     note
-    |> cast(attrs, [:title, :content, :color, :is_pinned, :is_archived, :is_checklist, :position, :deleted_at])
+    |> cast(attrs, [
+      :title,
+      :content,
+      :color,
+      :is_pinned,
+      :is_archived,
+      :is_checklist,
+      :position,
+      :deleted_at
+    ])
     |> validate_inclusion(:color, @colors)
   end
 

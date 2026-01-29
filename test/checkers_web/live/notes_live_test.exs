@@ -19,7 +19,9 @@ defmodule CheckersWeb.NotesLiveTest do
 
       # Submit the note creation form (the one with phx-submit="create_note")
       assert view
-             |> form("form[phx-submit='create_note']", note: %{title: "Test Note", content: "Test content"})
+             |> form("form[phx-submit='create_note']",
+               note: %{title: "Test Note", content: "Test content"}
+             )
              |> render_submit() =~ "Test Note"
     end
 

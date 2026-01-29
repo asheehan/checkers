@@ -50,31 +50,32 @@ defmodule CheckersWeb.CoreComponents do
     assigns = assign_new(assigns, :id, fn -> "flash-#{assigns.kind}" end)
 
     ~H"""
-    <div
-      :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
-      id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
-      role="alert"
-      class="toast toast-top toast-end z-50"
-      {@rest}
-    >
-      <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
-      ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
-          <p :if={@title} class="font-semibold">{@title}</p>
-          <p>{msg}</p>
+    <%= if msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind) do %>
+      <div
+        id={@id}
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+        role="alert"
+        class="toast toast-top toast-end z-50"
+        {@rest}
+      >
+        <div class={[
+          "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
+          @kind == :info && "alert-info",
+          @kind == :error && "alert-error"
+        ]}>
+          <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
+          <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
+          <div>
+            <p :if={@title} class="font-semibold">{@title}</p>
+            <p><%= msg %></p>
+          </div>
+          <div class="flex-1" />
+          <button type="button" class="group self-start cursor-pointer" aria-label="close">
+            <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
+          </button>
         </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label="close">
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
-        </button>
       </div>
-    </div>
+    <% end %>
     """
   end
 
@@ -225,7 +226,11 @@ defmodule CheckersWeb.CoreComponents do
           />{@label}
         </span>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <%= for msg <- @errors do %>
+        <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+          <.icon name="hero-exclamation-circle" class="size-5" /> <%= msg %>
+        </p>
+      <% end %>
     </div>
     """
   end
@@ -246,7 +251,11 @@ defmodule CheckersWeb.CoreComponents do
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <%= for msg <- @errors do %>
+        <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+          <.icon name="hero-exclamation-circle" class="size-5" /> <%= msg %>
+        </p>
+      <% end %>
     </div>
     """
   end
@@ -266,7 +275,11 @@ defmodule CheckersWeb.CoreComponents do
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <%= for msg <- @errors do %>
+        <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+          <.icon name="hero-exclamation-circle" class="size-5" /> <%= msg %>
+        </p>
+      <% end %>
     </div>
     """
   end
@@ -289,18 +302,12 @@ defmodule CheckersWeb.CoreComponents do
           {@rest}
         />
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <%= for msg <- @errors do %>
+        <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+          <.icon name="hero-exclamation-circle" class="size-5" /> <%= msg %>
+        </p>
+      <% end %>
     </div>
-    """
-  end
-
-  # Helper used by inputs to generate form errors
-  defp error(assigns) do
-    ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
-      <.icon name="hero-exclamation-circle" class="size-5" />
-      {render_slot(@inner_block)}
-    </p>
     """
   end
 
@@ -362,7 +369,9 @@ defmodule CheckersWeb.CoreComponents do
     <table class="table table-zebra">
       <thead>
         <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
+          <%= for col <- @col do %>
+            <th><%= col[:label] %></th>
+          <% end %>
           <th :if={@action != []}>
             <span class="sr-only">Actions</span>
           </th>
@@ -370,17 +379,18 @@ defmodule CheckersWeb.CoreComponents do
       </thead>
       <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
         <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
-          >
-            {render_slot(col, @row_item.(row))}
-          </td>
+          <%= for col <- @col do %>
+            <td
+              phx-click={@row_click && @row_click.(row)}
+              class={@row_click && "hover:cursor-pointer"}
+            >
+              <%= render_slot(col, @row_item.(row)) %>
+            </td>
+          <% end %>
           <td :if={@action != []} class="w-0 font-semibold">
             <div class="flex gap-4">
               <%= for action <- @action do %>
-                {render_slot(action, @row_item.(row))}
+                <%= render_slot(action, @row_item.(row)) %>
               <% end %>
             </div>
           </td>
@@ -407,12 +417,14 @@ defmodule CheckersWeb.CoreComponents do
   def list(assigns) do
     ~H"""
     <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
-        </div>
-      </li>
+      <%= for item <- @item do %>
+        <li class="list-row">
+          <div class="list-col-grow">
+            <div class="font-bold"><%= item.title %></div>
+            <div><%= render_slot(item) %></div>
+          </div>
+        </li>
+      <% end %>
     </ul>
     """
   end
